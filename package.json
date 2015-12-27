@@ -1,6 +1,6 @@
 {
   "name": "kndownloader",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Node module that enables download, transform and project data.",
   "main": "index.js",
   "directories": {

@@ -26,8 +26,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
-    "type": "git",
-    "url": "bitbucket.org:mapito/kndownloader.git"
+      "type": "git",
+      "url": "git@github.com:vdubr/kndownloader_npm.git"
   },
   "keywords": [
     "gis",

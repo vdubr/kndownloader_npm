@@ -107,9 +107,7 @@ function MapitoKnDown(options) {
    * @type {string}
    * @private
    */
-   this.krovak_ = '+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 ' +
-   '+alpha=0 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=' +
-   '570.8,85.7,462.8,4.998,1.587,5.261,3.56 +units=m +no_defs';
+   this.krovak_ = '+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=542.5,89.2,456.9,5.517,2.275,5.516,6.96 +pm=greenwich +units=m +no_defs';
 
   /**
    * URL where is stored kn gml data in EPSG:5514
@@ -124,9 +122,8 @@ function MapitoKnDown(options) {
    * @private
    */
   this.outputSrs_ = this.krovak_;
-
-  if (options && options.projection) {
-    this.outputSrs_ = options.projection;
+  if (options && options.projection && (options.projection !== 'EPSG:5514')) {
+      this.outputSrs_ = options.projection;
   }
   console.log('Transform to projection: ' + this.outputSrs_);
 

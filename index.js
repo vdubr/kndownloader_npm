@@ -26,14 +26,24 @@ var unzip = require('unzip');
   */
 module.exports = MapitoKnDown;
 
+var ESRISHAPEFILE = 'ESRI Shapefile';
+
 /**
  * @enum {string}
  */
 var formats = {
-  SHP: 'shp',
-  KML: 'kml',
-  GML: 'gml'
+  SHP: 'shp', //err
+  KML: 'kml', //ok
+  GML: 'gml', //ok
+  SQLite: 'SQLite', //ok
+  DGN: 'dgn', //ok
+  DXF: 'dxf', //ok
+  GeoJSON: 'GeoJSON', //ok
+  GPX: 'gpx' //export pouze linií
 };
+
+var DATATYPES = ['CadastralZoning', 'CadastralParcel', 'CadastralBoundary'];
+
 
 
 /**
@@ -93,6 +103,13 @@ function MapitoKnDown(options) {
   }else {
     throw new Error('KN id is required');
   }
+
+  this.datatypes_ = DATATYPES;
+  if (options && options.types) {
+    //parse types
+    this.datatypes_ = parseTypes(options.types)
+  }
+  console.log(options.types,this.datatypes_);
 
   /**
    * @type {number}
@@ -181,9 +198,17 @@ MapitoKnDown.prototype = Object.create(EE.prototype);
  */
 MapitoKnDown.prototype.save = function() {
   this.checkFolderStructure_();
+  var dataUrl;
+  if(this.datatypes_.length === 1) {
+    dataUrl = this.datatypes_[0] + '.' + this.getSuffix_(this.outputFormat_);
+  } else {
+    dataUrl = 'data.zip';
+  }
+
+
   this.stream_.on('compressed', function() {
-    console.log('path://' + this.basePath_ + '/data.zip')}.bind(this));
-  this.run_().pipe(fs.createWriteStream(this.basePath_ + '/data.zip'));
+    console.log('path://' + this.basePath_ + '/' + dataUrl)}.bind(this));
+  this.run_().pipe(fs.createWriteStream(this.basePath_ + '/' + dataUrl));
 };
 
 
@@ -200,11 +225,12 @@ MapitoKnDown.prototype.stream = function() {
  * @private
  */
 MapitoKnDown.prototype.run_ = function() {
-
-  this.downloadKnData_();
-
-  this.stream_.on('compressed', this.clear_.bind(this));
-
+  if(this.datatypes_.length === 0) {
+    console.log('No types found to download');
+  } else {
+    this.downloadKnData_();
+    this.stream_.on('compressed', this.clear_.bind(this));
+  }
   return this.stream_;
 };
 
@@ -213,6 +239,7 @@ MapitoKnDown.prototype.run_ = function() {
  * @private
  */
 MapitoKnDown.prototype.clear_ = function() {
+  console.log('clear');
   this.clearDirectory_();
   this.clearOlderDirectories_();
 };
@@ -246,15 +273,26 @@ MapitoKnDown.prototype.clearOlderDirectories_ = function() {
  * @private
  */
 MapitoKnDown.prototype.compressTransformedFiles_ = function() {
-  var zipArchive = archiver('zip');
-
+  var sourceDir = this.basePath_ + '/output/';
+  var downloadPath;
+  if (this.datatypes_.length === 1) {
+    var filename = this.datatypes_[0] + '.' + this.getSuffix_(this.outputFormat_);
+    downloadPath = this.basePath_ + "/" + filename
+    var rs = fs.createReadStream(sourceDir + filename);
+    var ws = fs.createWriteStream(downloadPath)
+    ws.on('finish', function () {
+      fs.createReadStream(downloadPath).pipe(this.stream_);
+      this.stream_.emit('compressed', downloadPath);
+    }.bind(this))
+    rs.pipe(ws)
+  } else {
+    var zipArchive = archiver('zip');
+    downloadPath = this.basePath_ + "/data.zip";
     zipArchive.on('end', function() {
-      this.stream_.emit('compressed');
+      this.stream_.emit('compressed', downloadPath);
     }.bind(this));
 
     zipArchive.pipe(this.stream_);
-
-    var sourceDir = this.basePath_ + '/output/';
 
     zipArchive.bulk([
       {
@@ -264,12 +302,13 @@ MapitoKnDown.prototype.compressTransformedFiles_ = function() {
       }
     ]);
 
-zipArchive.finalize(function(er) {
-  if (er) {
-    console.log('error in archive');
+    zipArchive.finalize(function(er) {
+      if (er) {
+        console.log('error in archive');
+      }
+      console.log('archive is ok');
+    });
   }
-  console.log('archive is ok');
-});
 };
 
 /**
@@ -320,7 +359,7 @@ MapitoKnDown.prototype.getFormat_ = function(format) {
   }
 
   if (!containValue) {
-    throw new Error('Given format is not supported');
+    throw new Error('Given format ' + format + ' is not supported');
   }
 
   if (format === 'shp') {
@@ -414,7 +453,6 @@ MapitoKnDown.prototype.getSuffix_ = function(format) {
  * @private
  */
  MapitoKnDown.prototype.onOgrInfoReady_ = function(error, stdout, stderr) {
-   var layerTypes = ['CadastralZoning', 'CadastralParcel', 'CadastralBoundary'];
    var layers = [];
    var lines = stdout.split(/\n/g);
    var line, layerId, layerType;
@@ -424,7 +462,7 @@ MapitoKnDown.prototype.getSuffix_ = function(format) {
      if (line.length > 3 && layerId) {
        //get layer name
        layerType = line.split(' ')[1];
-       if (layerTypes.indexOf(layerType) > -1) {
+       if (this.datatypes_.indexOf(layerType) > -1) {
          layers.push({
            id: layerId,
            type: layerType
@@ -494,22 +532,52 @@ MapitoKnDown.prototype.transformData_ = function() {
  * @param {string} layerName
  * @private
  */
- MapitoKnDown.prototype.transformLayer_ = function(
+MapitoKnDown.prototype.transformLayer_ = function(
    knFilePath, outputFilePath, layerName) {
-  var output = ogr2ogr(knFilePath)
-                      .format(this.outputFormat_)
-                      .skipfailures()
-                      .project(this.outputSrs_, this.krovak_)
-                      .options([outputFilePath, layerName])
-                      .stream();
+  var transformStream = ogr2ogr(knFilePath)
+                .format(this.outputFormat_)
+                .skipfailures()
+                .project(this.outputSrs_, this.krovak_)
+                .options([layerName])
 
-  var ws = fs.createWriteStream(outputFilePath);
+  //don't know why, but when export geojson and Shapefile, no destination should be set.
+  if(this.outputFormat_ === ESRISHAPEFILE || this.outputFormat_ === formats.GeoJSON) {
+    console.log("Suppress destination property");
+  } else {
+    transformStream.destination(outputFilePath);
+  }
 
-  ws.on('finish', this.checkLastTransformLayer_.bind(this));
-
-  output.pipe(ws);
+  transformStream.exec(function(err, data){
+    this.onTransformCompleate_(err, data, outputFilePath)
+  }.bind(this))
 };
 
+
+/**
+ * @private
+ */
+MapitoKnDown.prototype.onTransformCompleate_ = function(err, data, outputFilePath) {
+  if (err) {
+    console.log(err);
+    this.checkLastTransformLayer_();
+  }
+
+  if(!err) {
+    if(this.outputFormat_ === ESRISHAPEFILE) {
+      //export Buffer into file
+      var bufferStream = new stream.PassThrough();
+      bufferStream.end(data);
+      bufferStream.pipe(fs.createWriteStream(outputFilePath)
+        .on('finish', this.checkLastTransformLayer_.bind(this))
+      );
+    } else if (this.outputFormat_ === formats.GeoJSON) {
+        fs.writeFile(outputFilePath, JSON.stringify(data),
+          this.checkLastTransformLayer_.bind(this));
+    } else {
+      this.checkLastTransformLayer_();
+    }
+  }
+}
 
 /**
  * @private
@@ -519,3 +587,23 @@ MapitoKnDown.prototype.unzipAndTranfer_ = function() {
     .pipe(unzip.Extract({ path: this.basePath_ + '/extract' }))
     .on('close', this.transformData_.bind(this));
 };
+
+var parseTypes = function(types) {
+  var parsedTypes = [];
+  if(types && Array.isArray(types)) {
+    types.forEach(function(type){
+      switch (type) {
+        case 'boundary':
+          parsedTypes.push('CadastralBoundary')
+          break;
+        case 'zoning':
+          parsedTypes.push('CadastralZoning')
+          break;
+        case 'parcel':
+          parsedTypes.push('CadastralParcel')
+          break;
+      }
+    })
+  }
+  return parsedTypes;
+}

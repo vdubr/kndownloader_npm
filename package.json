@@ -10,13 +10,12 @@
     "archiver": "~0.14.3",
     "request": "~2.53.0",
     "rimraf": "~2.3.2",
-    "ogr2ogr": "~0.5.1",
     "unzip": "~0.1.11"
   },
   "devDependencies": {
     "archiver": "^0.14.3",
     "events": "^1.0.2",
-    "ogr2ogr": "^0.5.1",
+    "ogr2ogr": "1.0.0",
     "request": "^2.53.0",
     "rimraf": "^2.3.2",
     "stream": "0.0.2",

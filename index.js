@@ -537,8 +537,10 @@ MapitoKnDown.prototype.transformLayer_ = function(
   var transformStream = ogr2ogr(knFilePath)
                 .format(this.outputFormat_)
                 .skipfailures()
+                .timeout(60000)
                 .project(this.outputSrs_, this.krovak_)
                 .options([layerName])
+                //-sql "ALTER TABLE shapefile ADD COLUMN field varchar(50)"
 
   //don't know why, but when export geojson and Shapefile, no destination should be set.
   if(this.outputFormat_ === ESRISHAPEFILE || this.outputFormat_ === formats.GeoJSON) {

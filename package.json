@@ -10,7 +10,8 @@
     "archiver": "~0.14.3",
     "request": "~2.53.0",
     "rimraf": "~2.3.2",
-    "unzip": "~0.1.11"
+    "unzip": "~0.1.11",
+    "ogr2ogr": "1.0.0"
   },
   "devDependencies": {
     "archiver": "^0.14.3",

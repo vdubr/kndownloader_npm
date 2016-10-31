@@ -4,6 +4,7 @@ var MapitoKnDown = require('../')
 var knDown = MapitoKnDown({
   id:617237,
   format:'GeoJSON', //shp
-  projection:'EPSG:4326',
-  types:['parcel']
+  // format:'shp', //shp
+  projection:'EPSG:4326'
+  ,types:['parcel']
 }).save()

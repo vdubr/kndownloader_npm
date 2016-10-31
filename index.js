@@ -32,7 +32,7 @@ var ESRISHAPEFILE = 'ESRI Shapefile';
  * @enum {string}
  */
 var formats = {
-  SHP: 'shp', //err
+  SHP: 'shp', //ok
   KML: 'kml', //ok
   GML: 'gml', //ok
   SQLite: 'SQLite', //ok
@@ -43,7 +43,7 @@ var formats = {
 };
 
 var DATATYPES = ['CadastralZoning', 'CadastralParcel', 'CadastralBoundary'];
-
+var LABELEDLAYERS = ['CadastralZoning', 'CadastralParcel'];
 
 
 /**
@@ -146,7 +146,7 @@ function MapitoKnDown(options) {
 
 
   //set output format
-  var format = 'shp';
+  var format = formats.SHP;
   if (options && options.format) {
     format = options.format;
   }
@@ -362,7 +362,7 @@ MapitoKnDown.prototype.getFormat_ = function(format) {
     throw new Error('Given format ' + format + ' is not supported');
   }
 
-  if (format === 'shp') {
+  if (format === formats.SHP) {
     checkFormat = 'ESRI Shapefile';
   }else {
     checkFormat = format;
@@ -472,6 +472,9 @@ MapitoKnDown.prototype.getSuffix_ = function(format) {
    }
 
    this.layerCount_ = layers.length;
+   if(this.outputFormat_ === formats.GPX) {
+     this.layerCount_ = 1;
+   };
    this.transformLayers_(layers);
  };
 
@@ -521,7 +524,10 @@ MapitoKnDown.prototype.transformData_ = function() {
     outputFilePath = this.basePath_ + '/output/' + name + '.' +
     this.outputSuffix_;
 
-    this.transformLayer_(knFilePath, outputFilePath, name);
+    //gpx can be exported only in lines, so we can transform only CadastralBoundary
+    if((this.outputFormat_ === formats.GPX && name === 'CadastralBoundary') || this.outputFormat_ !== formats.GPX) {
+      this.transformLayer_(knFilePath, outputFilePath, name);
+    }
   }
 };
 
@@ -534,13 +540,19 @@ MapitoKnDown.prototype.transformData_ = function() {
  */
 MapitoKnDown.prototype.transformLayer_ = function(
    knFilePath, outputFilePath, layerName) {
+  var sql = "SELECT * ";
+  if(LABELEDLAYERS.indexOf(layerName) > -1) {
+    sql += ",label AS jzm_popis "
+    sql += ",'70030' AS ObjCode "
+  }
+  sql += "FROM " + layerName;
+
   var transformStream = ogr2ogr(knFilePath)
                 .format(this.outputFormat_)
                 .skipfailures()
                 .timeout(60000)
                 .project(this.outputSrs_, this.krovak_)
-                .options([layerName])
-                //-sql "ALTER TABLE shapefile ADD COLUMN field varchar(50)"
+                .options([layerName, '-sql', sql])
 
   //don't know why, but when export geojson and Shapefile, no destination should be set.
   if(this.outputFormat_ === ESRISHAPEFILE || this.outputFormat_ === formats.GeoJSON) {

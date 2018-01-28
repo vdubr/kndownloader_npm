@@ -1,4 +1,4 @@
-var MapitoKnDown = require('../')
+var MapitoKnDown = require('../build/build/main.js').MapitoKnDown;
 
 //only save and show url
 var knDown = MapitoKnDown({

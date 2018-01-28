@@ -10,24 +10,18 @@
     "bundle": "webpack --config ./build/build.config.js"
   },
   "dependencies": {
-    "node-stream-zip": "^1.4.2",
     "ogr2ogr": "1.0.0",
     "request": "~2.53.0",
     "rimraf": "~2.3.2",
-    "unzip": "~0.1.11"
+    "archiver": "^0.14.4"
   },
   "devDependencies": {
-    "archiver": "^0.14.4",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.1",
     "eslint": "^4.16.0",
     "events": "^1.0.2",
-    "ogr2ogr": "1.0.0",
-    "request": "^2.53.0",
-    "rimraf": "^2.3.2",
     "stream": "0.0.2",
-    "unzip": "^0.1.11",
     "webpack": "^3.10.0"
   },
   "repository": {

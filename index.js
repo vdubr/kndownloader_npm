@@ -17,6 +17,7 @@ var request = require('request');
 var rimraf = require('rimraf');
 var stream = require('stream');
 var unzip = require('unzip');
+var StreamZip = require('node-stream-zip');
 
 
 
@@ -124,8 +125,11 @@ function MapitoKnDown(options) {
    * @type {string}
    * @private
    */
-   this.krovak_ = '+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=542.5,89.2,456.9,5.517,2.275,5.516,6.96 +pm=greenwich +units=m +no_defs';
-
+    //deffinition from epsg.io
+    // thread: http://osgeo-org.1560.x6.nabble.com/gdal-dev-ogr2ogr-PG-gt-SHP-lacks-EPSG-code-td5295371.html
+    // this.krovak_ = 'PROJCS["S-JTSK / Krovak East North",GEOGCS["S-JTSK",DATUM["System_Jednotne_Trigonometricke_Site_Katastralni",SPHEROID["Bessel 1841",6377397.155,299.1528128,AUTHORITY["EPSG","7004"]],TOWGS84[589,76,480,0,0,0,0],AUTHORITY["EPSG","6156"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4156"]],PROJECTION["Krovak"],PARAMETER["latitude_of_center",49.5],PARAMETER["longitude_of_center",24.83333333333333],PARAMETER["azimuth",30.28813972222222],PARAMETER["pseudo_standard_parallel_1",78.5],PARAMETER["scale_factor",0.9999],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["X",EAST],AXIS["Y",NORTH],AUTHORITY["EPSG","5514"]]';
+    // this.krovak_ = 'epsg:5514';
+    this.krovak_ = 'PROJCS["S-JTSK / Krovak East North",GEOGCS["S-JTSK",DATUM["System_Jednotne_Trigonometricke_Site_Katastralni",SPHEROID["Bessel 1841",6377397.155,299.1528128,AUTHORITY["EPSG","7004"]],TOWGS84[570.8,85.7,462.8,4.998,1.587,5.261,3.56],AUTHORITY["EPSG","6156"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4156"]],PROJECTION["Krovak"],PARAMETER["latitude_of_center",49.5],PARAMETER["longitude_of_center",24.83333333333333],PARAMETER["azimuth",30.28813972222222],PARAMETER["pseudo_standard_parallel_1",78.5],PARAMETER["scale_factor",0.9999],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["X",EAST],AXIS["Y",NORTH],AUTHORITY["EPSG","5514"]]';
   /**
    * URL where is stored kn gml data in EPSG:5514
    * @type {string}
@@ -597,9 +601,19 @@ MapitoKnDown.prototype.onTransformCompleate_ = function(err, data, outputFilePat
  * @private
  */
 MapitoKnDown.prototype.unzipAndTranfer_ = function() {
-  fs.createReadStream(this.basePath_ + '/kn.zip')
-    .pipe(unzip.Extract({ path: this.basePath_ + '/extract' }))
-    .on('close', this.transformData_.bind(this));
+  var zip = new StreamZip({
+    file: this.basePath_ + '/kn.zip',
+    storeEntries: true
+  });
+  zip.on('ready', function() {
+    fs.mkdirSync(this.basePath_ + '/extract');
+    zip.extract(null, this.basePath_ + '/extract'
+    , function(err, count) {
+      console.log(err ? 'Extract error' : 'Extracted ' + count);
+      zip.close();
+      this.transformData_();
+    }.bind(this)
+  )}.bind(this));
 };
 
 var parseTypes = function(types) {

@@ -7,14 +7,14 @@
     "example": "examples"
   },
   "dependencies": {
-    "archiver": "~0.14.3",
+    "node-stream-zip": "^1.4.2",
+    "ogr2ogr": "1.0.0",
     "request": "~2.53.0",
     "rimraf": "~2.3.2",
-    "unzip": "~0.1.11",
-    "ogr2ogr": "1.0.0"
+    "unzip": "~0.1.11"
   },
   "devDependencies": {
-    "archiver": "^0.14.3",
+    "archiver": "^0.14.4",
     "events": "^1.0.2",
     "ogr2ogr": "1.0.0",
     "request": "^2.53.0",

@@ -1,6 +1,7 @@
 var fs = require('fs');
 
-var MapitoKnDown = require('../')
+// var MapitoKnDown = require('../')
+var MapitoKnDown = require('../build/build/main.js').MapitoKnDown;
 
 //test:true => use local testData
 var knDown = MapitoKnDown(

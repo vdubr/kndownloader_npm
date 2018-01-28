@@ -79,16 +79,15 @@ exports["MapitoKnDown"] =
 //fixjsstyle index.js --strict --jslint_error=all
 //gjslint index.js --strict --jslint_error=all
 
-var archiver = __webpack_require__(1);
-var EE = __webpack_require__(2).EventEmitter;
-var exec = __webpack_require__(3).exec;
-var fs = __webpack_require__(4);
-var ogr2ogr = __webpack_require__(5);
-var request = __webpack_require__(6);
-var rimraf = __webpack_require__(7);
-var stream = __webpack_require__(8);
-var unzip = __webpack_require__(9);
-var StreamZip = __webpack_require__(10);
+var EE = __webpack_require__(1).EventEmitter;
+var exec = __webpack_require__(2).exec;
+var fs = __webpack_require__(3);
+var ogr2ogr = __webpack_require__(4);
+var request = __webpack_require__(5);
+var rimraf = __webpack_require__(6);
+var stream = __webpack_require__(7);
+var StreamZip = __webpack_require__(8);
+var archiver = __webpack_require__(9);
 
 /**
   * export
@@ -671,61 +670,55 @@ var parseTypes = function (types) {
 /* 1 */
 /***/ (function(module, exports) {
 
-module.exports = require("archiver");
+module.exports = require("events");
 
 /***/ }),
 /* 2 */
 /***/ (function(module, exports) {
 
-module.exports = require("events");
+module.exports = require("child_process");
 
 /***/ }),
 /* 3 */
 /***/ (function(module, exports) {
 
-module.exports = require("child_process");
+module.exports = require("fs");
 
 /***/ }),
 /* 4 */
 /***/ (function(module, exports) {
 
-module.exports = require("fs");
+module.exports = require("ogr2ogr");
 
 /***/ }),
 /* 5 */
 /***/ (function(module, exports) {
 
-module.exports = require("ogr2ogr");
+module.exports = require("request");
 
 /***/ }),
 /* 6 */
 /***/ (function(module, exports) {
 
-module.exports = require("request");
+module.exports = require("rimraf");
 
 /***/ }),
 /* 7 */
 /***/ (function(module, exports) {
 
-module.exports = require("rimraf");
+module.exports = require("stream");
 
 /***/ }),
 /* 8 */
 /***/ (function(module, exports) {
 
-module.exports = require("stream");
+module.exports = require("node-stream-zip");
 
 /***/ }),
 /* 9 */
 /***/ (function(module, exports) {
 
-module.exports = require("unzip");
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports) {
-
-module.exports = require("node-stream-zip");
+module.exports = require("archiver");
 
 /***/ })
 /******/ ]);

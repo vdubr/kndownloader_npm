@@ -8,7 +8,6 @@
 //fixjsstyle index.js --strict --jslint_error=all
 //gjslint index.js --strict --jslint_error=all
 
-var archiver = require('archiver');
 var EE = require('events').EventEmitter;
 var exec = require('child_process').exec;
 var fs = require('fs');
@@ -16,8 +15,8 @@ var ogr2ogr = require('ogr2ogr');
 var request = require('request');
 var rimraf = require('rimraf');
 var stream = require('stream');
-var unzip = require('unzip');
 var StreamZip = require('node-stream-zip');
+var archiver = require('archiver');
 
 
 
